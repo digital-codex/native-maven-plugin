@@ -6,8 +6,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 
-public class AbstractNativeCompilerMojo extends AbstractMojo {
-    protected static final Toolchain DEFAULT_TOOLCHAIN = new Toolchain("ninja", "clang", "clang++");
+public abstract class AbstractNativeMojo extends AbstractMojo {
+    protected static final Toolchain DEFAULT_TOOLCHAIN = new Toolchain();
 
     private final Log LOGGER = this.getLog();
 
@@ -17,10 +17,10 @@ public class AbstractNativeCompilerMojo extends AbstractMojo {
     @Parameter
     private Toolchain toolchain;
 
-    @Parameter(property = "native.generator", defaultValue = "NINJA", required = true, readonly = true)
+    @Parameter(property = "native.build.generator", defaultValue = "NINJA", required = true, readonly = true)
     private Generator generator;
 
-    @Parameter(property = "native.source.path", defaultValue = "${project.basedir}", required = true, readonly = true)
+    @Parameter(property = "native.source.path", defaultValue = "${basedir}", required = true, readonly = true)
     private String source;
 
     @Parameter(property = "native.build.path", defaultValue = "${project.build.directory}", required = true, readonly = true)
@@ -31,6 +31,6 @@ public class AbstractNativeCompilerMojo extends AbstractMojo {
         Toolchain toolchain = (this.toolchain != null)
                 ? this.toolchain : DEFAULT_TOOLCHAIN;
 
-        LOGGER.info("Hello, World!");
+        LOGGER.info(toolchain.toString());
     }
 }
