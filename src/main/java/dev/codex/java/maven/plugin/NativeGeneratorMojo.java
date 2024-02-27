@@ -2,9 +2,10 @@ package dev.codex.java.maven.plugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+
+import java.io.IOException;
 
 @Mojo(
         name = "generate",
@@ -12,11 +13,12 @@ import org.apache.maven.plugins.annotations.Mojo;
         threadSafe = true
 )
 public class NativeGeneratorMojo extends AbstractNativeMojo {
-    private final Log LOGGER = this.getLog();
-
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        LOGGER.info("Generating build system");
-        super.execute();
+        try {
+            super.execute(ExecutionType.GENERATE_BUILD_SYSTEM);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e);
+        }
     }
 }
