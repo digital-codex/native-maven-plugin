@@ -4,6 +4,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
@@ -25,8 +26,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     private static final String BUILD = "--build";
     private static final String TARGET = "--target";
-
-    private final Log LOGGER = this.getLog();
 
     @Parameter(property = "native.build.type", defaultValue = "DEBUG")
     private BuildType buildType;
@@ -76,9 +75,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         };
 
         int returnValue;
-        LOGGER.info("Executing: " + String.join(" ", this.command.command()));
+        this.getLog().info("Executing: " + String.join(" ", this.command.command()));
 
-        this.command.execute(LOGGER);
+        this.command.execute(this.getLog());
         this.command.outputStream().start();
 
         returnValue = this.command.process().waitFor();

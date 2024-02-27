@@ -45,7 +45,7 @@ public class CMakeCommandLine {
         public void run() {
             try(BufferedReader in = this.process.inputReader()) {
                 for (String line = in.readLine(); line != null; line = in.readLine()) {
-                    this.consumer.info("Process " + this.process.pid() + ": " + line);
+                    this.consumer.debug("Process " + this.process.pid() + ": " + line);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
