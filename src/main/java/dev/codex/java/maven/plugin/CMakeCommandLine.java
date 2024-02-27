@@ -1,49 +1,63 @@
 package dev.codex.java.maven.plugin;
 
-import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 
 public class CMakeCommandLine {
-    private int ap = 0;
-    private final String executable;
-    private String[] args = new String[8];
+    private final String[] command;
+    private Process process;
+    private ProcessInputStream inputStream;
 
-    public CMakeCommandLine() throws MojoExecutionException {
-        this.executable = ExecutableFinder.findExecutable("cmake");
+    public CMakeCommandLine(String[] command) {
+        this.command = command;
     }
 
-    public CMakeCommandLine defineProperty(String key, String value) {
-        this.addArgument("-D" + key + "=" + value);
-        return this;
+    public void execute(Log consumer) throws IOException {
+        this.process = Runtime.getRuntime().exec(this.command);
+        this.inputStream = new ProcessInputStream(this.process, consumer);
     }
 
-    public CMakeCommandLine addArguments(String... args) {
-        for (String arg : args) {
-            this.addArgument(arg);
+    public Process process() {
+        return this.process;
+    }
+
+    public ProcessInputStream inputStream() {
+        return this.inputStream;
+    }
+
+    public String command() {
+        return String.join(" ", this.command);
+    }
+
+    public static class ProcessInputStream extends Thread {
+        private final Process process;
+        private final Log consumer;
+        private boolean done;
+
+        public ProcessInputStream(Process process, Log consumer) {
+            this.process = process;
+            this.consumer = consumer;
         }
-        return this;
-    }
 
-    public Process execute() throws IOException {
-        return Runtime.getRuntime().exec(this.makeCommand());
-    }
+        @Override
+        public void run() {
+            try(BufferedReader in = this.process.inputReader()) {
+                for (String line = in.readLine(); line != null; line = in.readLine()) {
+                    this.consumer.info("Process " + this.process.pid() + ": " + line);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-    private void addArgument(String arg) {
-        if (this.ap + 1 > this.args.length) {
-            int oldCapacity = this.args.length;
-            String[] newArgs = new String[(oldCapacity < 8) ? 8 : oldCapacity << 1];
-            System.arraycopy(this.args, 0, newArgs, 0, oldCapacity);
-            this.args = newArgs;
+            this.done = true;
         }
 
-        this.args[this.ap++] = arg;
-    }
-
-    public String[] makeCommand() {
-        String[] command = new String[this.ap + 1];
-        command[0] = this.executable;
-        System.arraycopy(this.args, 0, command, 1, this.ap);
-        return command;
+        public synchronized void waitFor() throws InterruptedException {
+            while (!this.done) {
+                this.wait();
+            }
+        }
     }
 }

@@ -9,15 +9,14 @@ import java.io.IOException;
 
 @Mojo(
         name = "generate",
-        defaultPhase = LifecyclePhase.COMPILE,
-        threadSafe = true
+        defaultPhase = LifecyclePhase.COMPILE
 )
 public class NativeGeneratorMojo extends AbstractNativeMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             super.execute(ExecutionType.GENERATE_BUILD_SYSTEM);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException(e);
         }
     }

@@ -6,7 +6,9 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public abstract class AbstractNativeMojo extends AbstractMojo {
@@ -49,36 +51,42 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(property = "native.build.options")
     private List<String> options;
 
-    public void execute(ExecutionType type) throws MojoExecutionException, MojoFailureException, IOException {
+    public void execute(ExecutionType type) throws MojoExecutionException, MojoFailureException, IOException, InterruptedException {
         Toolchain toolchain = (this.toolchain != null)
                 ? this.toolchain : DEFAULT_TOOLCHAIN;
 
         this.command = switch (type) {
             case GENERATE_BUILD_SYSTEM ->
-                    new CMakeCommandLine()
+                    new CMakeCommandLineBuilder()
                             .defineProperty(AbstractNativeMojo.CMAKE_BUILD_TYPE, this.buildType.value())
                             .defineProperty(AbstractNativeMojo.CMAKE_MAKE_PROGRAM, ExecutableFinder.findExecutable(toolchain.generator()))
                             .defineProperty(AbstractNativeMojo.CMAKE_C_COMPILER, ExecutableFinder.findExecutable(toolchain.ccompiler()))
                             .defineProperty(AbstractNativeMojo.CMAKE_CXX_COMPILER, ExecutableFinder.findExecutable(toolchain.cxxcompiler()))
                             .addArguments("-G", this.generator.value())
                             .addArguments("-S", this.sourceDirectory)
-                            .addArguments("-B", this.buildDirectory);
+                            .addArguments("-B", this.buildDirectory)
+                            .build();
             case BUILD_PROJECT -> {
-                CMakeCommandLine command = new CMakeCommandLine()
+                CMakeCommandLineBuilder builder = new CMakeCommandLineBuilder()
                         .addArguments(AbstractNativeMojo.BUILD, this.buildDirectory)
                         .addArguments(AbstractNativeMojo.TARGET, this.target);
                 for (String option : this.options) {
-                    command.addArguments(option);
+                    builder.addArguments(option);
                 }
-                yield command;
+                yield builder.build();
             }
         };
 
         int returnValue;
-        try {
-            LOGGER.info("Executing: " + String.join(" ", this.command.makeCommand()));
+        LOGGER.info("Executing: " + String.join(" ", this.command.command()));
 
-            returnValue = this.command.execute().waitFor();
+        this.command.execute(LOGGER);
+        this.command.inputStream().start();
+
+        returnValue = this.command.process().waitFor();
+
+        try {
+            this.command.inputStream().waitFor();
         } catch (InterruptedException e) {
             throw new MojoExecutionException(e);
         }

@@ -9,16 +9,15 @@ import java.io.IOException;
 
 @Mojo(
         name = "build",
-        defaultPhase = LifecyclePhase.COMPILE,
-        threadSafe = true
+        defaultPhase = LifecyclePhase.COMPILE
 )
 public class NativeBuilderMojo extends AbstractNativeMojo {
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             super.execute(ExecutionType.BUILD_PROJECT);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }
