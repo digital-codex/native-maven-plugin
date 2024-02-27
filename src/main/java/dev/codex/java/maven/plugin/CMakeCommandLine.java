@@ -54,7 +54,7 @@ public class CMakeCommandLine {
             this.done = true;
         }
 
-        public synchronized void waitFor() throws InterruptedException {
+        public void waitFor() throws InterruptedException {
             while (!this.done) {
                 this.wait();
             }

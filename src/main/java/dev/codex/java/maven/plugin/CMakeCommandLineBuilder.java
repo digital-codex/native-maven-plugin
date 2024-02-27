@@ -2,6 +2,8 @@ package dev.codex.java.maven.plugin;
 
 import org.apache.maven.plugin.MojoExecutionException;
 
+import java.util.List;
+
 public class CMakeCommandLineBuilder {
     private int ap = 0;
     private final String executable;
@@ -19,6 +21,13 @@ public class CMakeCommandLineBuilder {
     public CMakeCommandLineBuilder addArguments(String... args) {
         for (String arg : args) {
             this.addArgument(arg);
+        }
+        return this;
+    }
+
+    public CMakeCommandLineBuilder addArguments(List<String> args) {
+        for (String arg : args) {
+            this.addArguments(arg);
         }
         return this;
     }

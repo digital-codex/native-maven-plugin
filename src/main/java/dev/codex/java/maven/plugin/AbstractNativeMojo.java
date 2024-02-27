@@ -3,17 +3,14 @@ package dev.codex.java.maven.plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
 import java.util.List;
 
 public abstract class AbstractNativeMojo extends AbstractMojo {
-    public enum ExecutionType {
-        GENERATE_BUILD_SYSTEM,
-        BUILD_PROJECT
+    public enum ExecutionGoal {
+        GENERATE, BUILD
     }
     protected static final Toolchain DEFAULT_TOOLCHAIN = new Toolchain();
 
@@ -48,12 +45,13 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(property = "native.build.options")
     private List<String> options;
 
-    public void execute(ExecutionType type) throws MojoExecutionException, MojoFailureException, IOException, InterruptedException {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
         Toolchain toolchain = (this.toolchain != null)
-                ? this.toolchain : DEFAULT_TOOLCHAIN;
+                ? this.toolchain : AbstractNativeMojo.DEFAULT_TOOLCHAIN;
 
-        this.command = switch (type) {
-            case GENERATE_BUILD_SYSTEM ->
+        this.command = switch (this.getGoal()) {
+            case GENERATE ->
                     new CMakeCommandLineBuilder()
                             .defineProperty(AbstractNativeMojo.CMAKE_BUILD_TYPE, this.buildType.value())
                             .defineProperty(AbstractNativeMojo.CMAKE_MAKE_PROGRAM, ExecutableFinder.findExecutable(toolchain.generator()))
@@ -63,26 +61,27 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                             .addArguments("-S", this.sourceDirectory)
                             .addArguments("-B", this.buildDirectory)
                             .build();
-            case BUILD_PROJECT -> {
-                CMakeCommandLineBuilder builder = new CMakeCommandLineBuilder()
+            case BUILD ->
+                 new CMakeCommandLineBuilder()
                         .addArguments(AbstractNativeMojo.BUILD, this.buildDirectory)
-                        .addArguments(AbstractNativeMojo.TARGET, this.target);
-                for (String option : this.options) {
-                    builder.addArguments(option);
-                }
-                yield builder.build();
-            }
+                        .addArguments(AbstractNativeMojo.TARGET, this.target)
+                        .addArguments(this.options)
+                        .build();
         };
 
         int returnValue;
         this.getLog().info("Executing: " + String.join(" ", this.command.command()));
 
-        this.command.execute(this.getLog());
+        try {
+            this.command.execute(this.getLog());
+        } catch (IOException e) {
+            throw new MojoExecutionException(e);
+        }
         this.command.outputStream().start();
 
-        returnValue = this.command.process().waitFor();
-
         try {
+            returnValue = this.command.process().waitFor();
+
             this.command.outputStream().waitFor();
         } catch (InterruptedException e) {
             throw new MojoExecutionException(e);
@@ -91,4 +90,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         if (returnValue != 0)
             throw new MojoFailureException("Process had nonzero return value: returned " + returnValue);
     }
+
+    public abstract ExecutionGoal getGoal();
 }
