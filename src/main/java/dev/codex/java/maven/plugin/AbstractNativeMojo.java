@@ -6,9 +6,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 public abstract class AbstractNativeMojo extends AbstractMojo {
@@ -81,12 +79,12 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         LOGGER.info("Executing: " + String.join(" ", this.command.command()));
 
         this.command.execute(LOGGER);
-        this.command.inputStream().start();
+        this.command.outputStream().start();
 
         returnValue = this.command.process().waitFor();
 
         try {
-            this.command.inputStream().waitFor();
+            this.command.outputStream().waitFor();
         } catch (InterruptedException e) {
             throw new MojoExecutionException(e);
         }

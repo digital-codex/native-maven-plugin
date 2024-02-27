@@ -8,7 +8,7 @@ import java.io.IOException;
 public class CMakeCommandLine {
     private final String[] command;
     private Process process;
-    private ProcessInputStream inputStream;
+    private ProcessOutputStream outputStream;
 
     public CMakeCommandLine(String[] command) {
         this.command = command;
@@ -16,27 +16,27 @@ public class CMakeCommandLine {
 
     public void execute(Log consumer) throws IOException {
         this.process = Runtime.getRuntime().exec(this.command);
-        this.inputStream = new ProcessInputStream(this.process, consumer);
+        this.outputStream = new ProcessOutputStream(this.process, consumer);
     }
 
     public Process process() {
         return this.process;
     }
 
-    public ProcessInputStream inputStream() {
-        return this.inputStream;
+    public ProcessOutputStream outputStream() {
+        return this.outputStream;
     }
 
     public String command() {
         return String.join(" ", this.command);
     }
 
-    public static class ProcessInputStream extends Thread {
+    public static class ProcessOutputStream extends Thread {
         private final Process process;
         private final Log consumer;
         private boolean done;
 
-        public ProcessInputStream(Process process, Log consumer) {
+        public ProcessOutputStream(Process process, Log consumer) {
             this.process = process;
             this.consumer = consumer;
         }
