@@ -12,9 +12,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     public enum ExecutionGoal {
         GENERATE, BUILD
     }
-    protected static final Toolchain DEFAULT_TOOLCHAIN = new Toolchain();
-
-    protected CMakeCommandLine command;
 
     private static final String CMAKE_BUILD_TYPE = "CMAKE_BUILD_TYPE";
     private static final String CMAKE_MAKE_PROGRAM = "CMAKE_MAKE_PROGRAM";
@@ -28,7 +25,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     private BuildType buildType;
 
     @Parameter
-    private Toolchain toolchain;
+    private final Toolchain toolchain = new Toolchain();
 
     @Parameter(property = "native.build.generator", defaultValue = "NINJA", required = true)
     private Generator generator;
@@ -47,16 +44,13 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        Toolchain toolchain = (this.toolchain != null)
-                ? this.toolchain : AbstractNativeMojo.DEFAULT_TOOLCHAIN;
-
-        this.command = switch (this.getGoal()) {
+        CMakeCommandLine command = switch (this.getGoal()) {
             case GENERATE ->
                     new CMakeCommandLineBuilder()
                             .defineProperty(AbstractNativeMojo.CMAKE_BUILD_TYPE, this.buildType.value())
-                            .defineProperty(AbstractNativeMojo.CMAKE_MAKE_PROGRAM, ExecutableFinder.findExecutable(toolchain.generator()))
-                            .defineProperty(AbstractNativeMojo.CMAKE_C_COMPILER, ExecutableFinder.findExecutable(toolchain.ccompiler()))
-                            .defineProperty(AbstractNativeMojo.CMAKE_CXX_COMPILER, ExecutableFinder.findExecutable(toolchain.cxxcompiler()))
+                            .defineProperty(AbstractNativeMojo.CMAKE_MAKE_PROGRAM, ExecutableFinder.findExecutable(this.toolchain.generator()))
+                            .defineProperty(AbstractNativeMojo.CMAKE_C_COMPILER, ExecutableFinder.findExecutable(this.toolchain.ccompiler()))
+                            .defineProperty(AbstractNativeMojo.CMAKE_CXX_COMPILER, ExecutableFinder.findExecutable(this.toolchain.cxxcompiler()))
                             .addArguments("-G", this.generator.value())
                             .addArguments("-S", this.sourceDirectory)
                             .addArguments("-B", this.buildDirectory)
@@ -70,19 +64,19 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         };
 
         int returnValue;
-        this.getLog().info("Executing: " + String.join(" ", this.command.command()));
+        this.getLog().info("Executing: " + String.join(" ", command.command()));
 
         try {
-            this.command.execute(this.getLog());
+            command.execute(this.getLog());
         } catch (IOException e) {
             throw new MojoExecutionException(e);
         }
-        this.command.outputStream().start();
+        command.outputStream().start();
 
         try {
-            returnValue = this.command.process().waitFor();
+            returnValue = command.process().waitFor();
 
-            this.command.outputStream().waitFor();
+            command.outputStream().waitFor();
         } catch (InterruptedException e) {
             throw new MojoExecutionException(e);
         }
