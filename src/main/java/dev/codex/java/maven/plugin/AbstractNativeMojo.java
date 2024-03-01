@@ -44,7 +44,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        CMakeCommandLine command = switch (this.getGoal()) {
+        CMakeCommandLine command = switch (this.goal()) {
             case GENERATE ->
                     new CMakeCommandLineBuilder()
                             .defineProperty(AbstractNativeMojo.CMAKE_BUILD_TYPE, this.buildType.value())
@@ -85,5 +85,5 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             throw new MojoFailureException("Process had nonzero return value: returned " + returnValue);
     }
 
-    public abstract ExecutionGoal getGoal();
+    public abstract ExecutionGoal goal();
 }

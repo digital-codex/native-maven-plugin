@@ -9,7 +9,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 )
 public class NativeBuilderMojo extends AbstractNativeMojo {
     @Override
-    public ExecutionGoal getGoal() {
+    public ExecutionGoal goal() {
         return ExecutionGoal.BUILD;
     }
 }
