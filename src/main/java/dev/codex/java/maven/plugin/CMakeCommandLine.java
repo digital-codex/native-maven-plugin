@@ -51,10 +51,13 @@ public class CMakeCommandLine {
                 throw new RuntimeException(e);
             }
 
-            this.done = true;
+            synchronized (this) {
+                this.done = true;
+                this.notifyAll();
+            }
         }
 
-        public void waitFor() throws InterruptedException {
+        public synchronized void waitFor() throws InterruptedException {
             while (!this.done) {
                 this.wait();
             }
