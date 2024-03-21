@@ -9,59 +9,30 @@ import java.io.IOException;
 import java.util.List;
 
 public abstract class AbstractNativeMojo extends AbstractMojo {
-    public enum ExecutionGoal {
-        GENERATE, BUILD
-    }
-
-    private static final String CMAKE_BUILD_TYPE = "CMAKE_BUILD_TYPE";
-    private static final String CMAKE_MAKE_PROGRAM = "CMAKE_MAKE_PROGRAM";
-    private static final String CMAKE_C_COMPILER = "CMAKE_C_COMPILER";
-    private static final String CMAKE_CXX_COMPILER = "CMAKE_CXX_COMPILER";
-
-    private static final String BUILD = "--build";
-    private static final String TARGET = "--target";
-
     @Parameter(property = "native.build.type", defaultValue = "DEBUG")
-    private BuildType buildType;
+    protected BuildType buildType;
 
     @Parameter
-    private final Toolchain toolchain = new Toolchain();
+    protected final Toolchain toolchain = new Toolchain();
 
     @Parameter(property = "native.build.generator", defaultValue = "NINJA", required = true)
-    private Generator generator;
+    protected Generator generator;
 
     @Parameter(property = "native.source.path", defaultValue = "${basedir}", required = true, readonly = true)
-    private String sourceDirectory;
+    protected String sourceDirectory;
 
     @Parameter(property = "native.build.path", defaultValue = "${project.build.directory}", required = true, readonly = true)
-    private String buildDirectory;
+    protected String buildDirectory;
 
     @Parameter(property = "native.build.target", required = true)
-    private String target;
+    protected String target;
 
     @Parameter(property = "native.build.options")
-    private List<String> options;
+    protected List<String> options;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        CMakeCommandLine command = switch (this.goal()) {
-            case GENERATE ->
-                    new CMakeCommandLineBuilder()
-                            .defineProperty(AbstractNativeMojo.CMAKE_BUILD_TYPE, this.buildType.value())
-                            .defineProperty(AbstractNativeMojo.CMAKE_MAKE_PROGRAM, ExecutableFinder.findExecutable(this.toolchain.generator()))
-                            .defineProperty(AbstractNativeMojo.CMAKE_C_COMPILER, ExecutableFinder.findExecutable(this.toolchain.ccompiler()))
-                            .defineProperty(AbstractNativeMojo.CMAKE_CXX_COMPILER, ExecutableFinder.findExecutable(this.toolchain.cxxcompiler()))
-                            .addArguments("-G", this.generator.value())
-                            .addArguments("-S", this.sourceDirectory)
-                            .addArguments("-B", this.buildDirectory)
-                            .build();
-            case BUILD ->
-                 new CMakeCommandLineBuilder()
-                        .addArguments(AbstractNativeMojo.BUILD, this.buildDirectory)
-                        .addArguments(AbstractNativeMojo.TARGET, this.target)
-                        .addArguments(this.options)
-                        .build();
-        };
+        CMakeCommandLine command = this.command();
 
         int returnValue;
         this.getLog().info("Executing: " + String.join(" ", command.command()));
@@ -85,5 +56,5 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             throw new MojoFailureException("Process had nonzero return value: returned " + returnValue);
     }
 
-    public abstract ExecutionGoal goal();
+    public abstract CMakeCommandLine command() throws MojoExecutionException;
 }
