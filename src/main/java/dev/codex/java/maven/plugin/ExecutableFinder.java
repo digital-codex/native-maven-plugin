@@ -16,8 +16,11 @@ public class ExecutableFinder {
         super();
     }
 
-    // TODO: validate path is not null
-    public static String findExecutable(String target) throws MojoExecutionException {
+    public static String findExecutable(String target) {
+        if (target == null) {
+            throw new IllegalArgumentException("`target` must be non-null.");
+        }
+
         String found = ExecutableFinder.CACHE.get(target);
         if (found != null)
             return found;
@@ -52,6 +55,6 @@ public class ExecutableFinder {
             }
         }
 
-        throw new MojoExecutionException("No such executable '" + target + "'.");
+        throw new IllegalArgumentException("No such executable '" + target + "'.");
     }
 }

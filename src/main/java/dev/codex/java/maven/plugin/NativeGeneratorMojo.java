@@ -15,15 +15,15 @@ public class NativeGeneratorMojo extends AbstractNativeMojo {
     private static final String CMAKE_CXX_COMPILER = "CMAKE_CXX_COMPILER";
 
     @Override
-    public CMakeCommandLine command() throws MojoExecutionException {
+    public CMakeCommandLine command() {
         return new CMakeCommandLineBuilder()
-                .defineProperty(NativeGeneratorMojo.CMAKE_BUILD_TYPE, this.buildType.value())
-                .defineProperty(NativeGeneratorMojo.CMAKE_MAKE_PROGRAM, ExecutableFinder.findExecutable(this.toolchain.generator()))
-                .defineProperty(NativeGeneratorMojo.CMAKE_C_COMPILER, ExecutableFinder.findExecutable(this.toolchain.ccompiler()))
-                .defineProperty(NativeGeneratorMojo.CMAKE_CXX_COMPILER, ExecutableFinder.findExecutable(this.toolchain.cxxcompiler()))
-                .addArguments("-G", this.generator.value())
-                .addArguments("-S", this.sourceDirectory)
-                .addArguments("-B", this.buildDirectory)
+                .add("-D" + NativeGeneratorMojo.CMAKE_BUILD_TYPE + "=" + this.buildType.value())
+                .add("-D" + NativeGeneratorMojo.CMAKE_MAKE_PROGRAM + "=" + ExecutableFinder.findExecutable(this.toolchain.generator()))
+                .add("-D" + NativeGeneratorMojo.CMAKE_C_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.ccompiler()))
+                .add("-D" + NativeGeneratorMojo.CMAKE_CXX_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.cxxcompiler()))
+                .add("-G", this.generator.value())
+                .add("-S", this.sourceDirectory)
+                .add("-B", this.buildDirectory)
                 .build();
     }
 }

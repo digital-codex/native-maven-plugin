@@ -32,28 +32,26 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        CMakeCommandLine command = this.command();
+        CMakeCommandLine cmake = this.command();
+        this.getLog().info("Executing: " + cmake.toString());
 
         int returnValue;
-        this.getLog().info("Executing: " + String.join(" ", command.command()));
-
         try {
-            command.execute(this.getLog());
+            cmake.execute((String data) -> this.getLog().debug(data));
         } catch (IOException e) {
             throw new MojoExecutionException(e);
         }
-        command.outputStream().start();
+        cmake.output().start();
 
         try {
-            returnValue = command.process().waitFor();
-
-            command.outputStream().waitFor();
+            returnValue = cmake.waitFor();
         } catch (InterruptedException e) {
             throw new MojoExecutionException(e);
         }
 
-        if (returnValue != 0)
-            throw new MojoFailureException("Process had nonzero return value: returned " + returnValue);
+        if (returnValue < 0) {
+            throw new MojoFailureException("Process exited with status " + returnValue);
+        }
     }
 
     public abstract CMakeCommandLine command() throws MojoExecutionException;

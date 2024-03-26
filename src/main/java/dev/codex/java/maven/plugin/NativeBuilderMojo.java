@@ -1,6 +1,5 @@
 package dev.codex.java.maven.plugin;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -13,11 +12,11 @@ public class NativeBuilderMojo extends AbstractNativeMojo {
     private static final String TARGET = "--target";
 
     @Override
-    public CMakeCommandLine command() throws MojoExecutionException {
+    public CMakeCommandLine command() {
         return new CMakeCommandLineBuilder()
-                .addArguments(NativeBuilderMojo.BUILD, this.buildDirectory)
-                .addArguments(NativeBuilderMojo.TARGET, this.target)
-                .addArguments(this.options)
+                .add(NativeBuilderMojo.BUILD, this.buildDirectory)
+                .add(NativeBuilderMojo.TARGET, this.target)
+                .add(this.options)
                 .build();
     }
 }

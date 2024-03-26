@@ -1,52 +1,63 @@
 package dev.codex.java.maven.plugin;
 
-import org.apache.maven.plugin.MojoExecutionException;
-
 import java.util.List;
 
 public class CMakeCommandLineBuilder {
-    private int ap = 0;
-    private final String executable;
-    private String[] args = new String[8];
+    private record Argument(String... parts) {}
 
-    public CMakeCommandLineBuilder() throws MojoExecutionException {
+    private final String executable;
+    private Argument[] arguments = new Argument[8];
+    private int count = 0;
+
+    public CMakeCommandLineBuilder() {
         this.executable = ExecutableFinder.findExecutable("cmake");
     }
 
-    public CMakeCommandLineBuilder defineProperty(String key, String value) {
-        this.addArgument("-D" + key + "=" + value);
+    public CMakeCommandLineBuilder add(String... args) {
+        this.add(new Argument(args));
         return this;
     }
 
-    public CMakeCommandLineBuilder addArguments(String... args) {
-        for (String arg : args) {
-            this.addArgument(arg);
-        }
-        return this;
-    }
-
-    public CMakeCommandLineBuilder addArguments(List<String> args) {
-        for (String arg : args) {
-            this.addArguments(arg);
-        }
+    public CMakeCommandLineBuilder add(List<String> args) {
+        this.add(new Argument(args.toArray(new String[0])));
         return this;
     }
 
     public CMakeCommandLine build() {
-        String[] command = new String[this.ap + 1];
-        command[0] = this.executable;
-        System.arraycopy(this.args, 0, command, 1, this.ap);
-        return new CMakeCommandLine(command);
+        return new CMakeCommandLine(this.command());
     }
 
-    private void addArgument(String arg) {
-        if (this.ap + 1 > this.args.length) {
-            int oldCapacity = this.args.length;
-            String[] newArgs = new String[(oldCapacity < 8) ? 8 : oldCapacity << 1];
-            System.arraycopy(this.args, 0, newArgs, 0, oldCapacity);
-            this.args = newArgs;
+    private void add(Argument arg) {
+        if (this.count + 1 > this.arguments.length) {
+            int oldCapacity = this.arguments.length;
+            Argument[] newArguments = new Argument[oldCapacity << 1];
+            System.arraycopy(this.arguments, 0, newArguments, 0, oldCapacity);
+            this.arguments = newArguments;
+        }
+        this.arguments[this.count++] = arg;
+    }
+
+    private String[] command() {
+        String[] args = new String[this.arguments.length * 2];
+        args[0] = this.executable; int count = 1;
+
+        for (Argument arg : this.arguments) {
+            if (arg == null)
+                continue;
+
+            for (String part : arg.parts()) {
+                if (count + 1 > args.length) {
+                    int oldCapacity = args.length;
+                    String[] newArgs = new String[(oldCapacity < 8) ? 8 : oldCapacity << 1];
+                    System.arraycopy(args, 0, newArgs, 0, oldCapacity);
+                    args = newArgs;
+                }
+                args[count++] = part;
+            }
         }
 
-        this.args[this.ap++] = arg;
+        String[] newArgs = new String[count];
+        System.arraycopy(args, 0, newArgs, 0, count);
+        return newArgs;
     }
 }
