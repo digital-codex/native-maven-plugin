@@ -20,7 +20,7 @@ public class NativeGeneratorMojo extends AbstractNativeMojo {
                 .add("-D" + NativeGeneratorMojo.CMAKE_MAKE_PROGRAM + "=" + ExecutableFinder.findExecutable(this.toolchain.generator()))
                 .add("-D" + NativeGeneratorMojo.CMAKE_C_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.ccompiler()))
                 .add("-D" + NativeGeneratorMojo.CMAKE_CXX_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.cxxcompiler()))
-                .add("-G", Generator.valueOf(this.toolchain.generator().toUpperCase()).name())
+                .add("-G", Generator.valueOf(this.toolchain.generator().toUpperCase()).value())
                 .add("-S", this.sourceDirectory)
                 .add("-B", this.buildDirectory)
                 .build();

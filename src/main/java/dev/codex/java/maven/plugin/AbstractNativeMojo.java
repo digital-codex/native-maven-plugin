@@ -11,7 +11,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(property = "native.build.type", defaultValue = "DEBUG")
     protected BuildType buildType;
 
-    @Parameter(property = "native.build.toolchain", readonly = true)
+    @Parameter(property = "native.build.toolchain", required = true)
     protected Toolchain toolchain = new Toolchain();
 
     @Parameter(property = "native.source.path", defaultValue = "${basedir}", required = true)
