@@ -1,6 +1,5 @@
 package dev.codex.java.maven.plugin;
 
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -21,7 +20,7 @@ public class NativeGeneratorMojo extends AbstractNativeMojo {
                 .add("-D" + NativeGeneratorMojo.CMAKE_MAKE_PROGRAM + "=" + ExecutableFinder.findExecutable(this.toolchain.generator()))
                 .add("-D" + NativeGeneratorMojo.CMAKE_C_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.ccompiler()))
                 .add("-D" + NativeGeneratorMojo.CMAKE_CXX_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.cxxcompiler()))
-                .add("-G", this.generator.value())
+                .add("-G", Generator.valueOf(this.toolchain.generator().toUpperCase()).name())
                 .add("-S", this.sourceDirectory)
                 .add("-B", this.buildDirectory)
                 .build();

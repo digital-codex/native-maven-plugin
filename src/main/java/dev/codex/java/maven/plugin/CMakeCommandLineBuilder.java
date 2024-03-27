@@ -18,11 +18,6 @@ public class CMakeCommandLineBuilder {
         return this;
     }
 
-    public CMakeCommandLineBuilder add(List<String> args) {
-        this.add(new Argument(args.toArray(new String[0])));
-        return this;
-    }
-
     public CMakeCommandLine build() {
         return new CMakeCommandLine(this.command());
     }

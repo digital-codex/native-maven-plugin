@@ -6,29 +6,25 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.IOException;
-import java.util.List;
 
 public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(property = "native.build.type", defaultValue = "DEBUG")
     protected BuildType buildType;
 
-    @Parameter
-    protected final Toolchain toolchain = new Toolchain();
+    @Parameter(property = "native.build.toolchain", readonly = true)
+    protected Toolchain toolchain = new Toolchain();
 
-    @Parameter(property = "native.build.generator", defaultValue = "NINJA", required = true)
-    protected Generator generator;
-
-    @Parameter(property = "native.source.path", defaultValue = "${basedir}", required = true, readonly = true)
+    @Parameter(property = "native.source.path", defaultValue = "${basedir}", required = true)
     protected String sourceDirectory;
 
-    @Parameter(property = "native.build.path", defaultValue = "${project.build.directory}", required = true, readonly = true)
+    @Parameter(property = "native.build.path", defaultValue = "${project.build.directory}", required = true)
     protected String buildDirectory;
 
     @Parameter(property = "native.build.target", required = true)
     protected String target;
 
     @Parameter(property = "native.build.options")
-    protected List<String> options;
+    protected String[] options;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
