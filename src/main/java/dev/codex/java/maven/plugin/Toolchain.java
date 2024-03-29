@@ -37,19 +37,6 @@ public class Toolchain {
         return this.cxxcompiler;
     }
 
-    public String[] findTools() throws MojoExecutionException {
-        String[] candidates = System.getenv("PATH").split(":");
-        List<Path> searchPaths = new ArrayList<>();
-        for (String dir : candidates) {
-            try {
-                searchPaths.add(Paths.get(dir));
-            } catch (InvalidPathException e) {
-                // continue
-            }
-        }
-        return new String[3];
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,6 +1,6 @@
 package dev.codex.java.maven.plugin;
 
-import java.util.List;
+import dev.codex.java.io.file.FileTreeWalker;
 
 public class CMakeCommandLineBuilder {
     private record Argument(String... parts) {}
@@ -10,7 +10,7 @@ public class CMakeCommandLineBuilder {
     private int count = 0;
 
     public CMakeCommandLineBuilder() {
-        this.executable = ExecutableFinder.findExecutable("cmake");
+        this.executable = FileTreeWalker.find("cmake").get().toString();
     }
 
     public CMakeCommandLineBuilder add(String... args) {

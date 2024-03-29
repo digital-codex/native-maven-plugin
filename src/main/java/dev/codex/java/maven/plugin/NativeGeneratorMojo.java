@@ -1,5 +1,6 @@
 package dev.codex.java.maven.plugin;
 
+import dev.codex.java.io.file.FileTreeWalker;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -16,10 +17,10 @@ public class NativeGeneratorMojo extends AbstractNativeMojo {
     @Override
     public CMakeCommandLine command() {
         return new CMakeCommandLineBuilder()
-                .add("-D" + NativeGeneratorMojo.CMAKE_BUILD_TYPE + "=" + this.buildType.value())
-                .add("-D" + NativeGeneratorMojo.CMAKE_MAKE_PROGRAM + "=" + ExecutableFinder.findExecutable(this.toolchain.generator()))
-                .add("-D" + NativeGeneratorMojo.CMAKE_C_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.ccompiler()))
-                .add("-D" + NativeGeneratorMojo.CMAKE_CXX_COMPILER + "=" + ExecutableFinder.findExecutable(this.toolchain.cxxcompiler()))
+                .add(AbstractNativeMojo.define(NativeGeneratorMojo.CMAKE_BUILD_TYPE, this.buildType.value()))
+                .add(AbstractNativeMojo.define(NativeGeneratorMojo.CMAKE_MAKE_PROGRAM, FileTreeWalker.find(this.toolchain.generator()).get().toString()))
+                .add(AbstractNativeMojo.define(NativeGeneratorMojo.CMAKE_C_COMPILER, FileTreeWalker.find(this.toolchain.ccompiler()).get().toString()))
+                .add(AbstractNativeMojo.define(NativeGeneratorMojo.CMAKE_CXX_COMPILER, FileTreeWalker.find(this.toolchain.cxxcompiler()).get().toString()))
                 .add("-G", Generator.valueOf(this.toolchain.generator().toUpperCase()).value())
                 .add("-S", this.sourceDirectory)
                 .add("-B", this.buildDirectory)

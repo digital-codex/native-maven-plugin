@@ -50,5 +50,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
     }
 
-    public abstract CMakeCommandLine command() throws MojoExecutionException;
+    public abstract CMakeCommandLine command();
+
+    public static String define(String key, String value) {
+        return "-D" + key + "=" + value;
+    }
 }
