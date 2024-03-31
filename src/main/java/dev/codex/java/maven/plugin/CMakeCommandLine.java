@@ -66,6 +66,7 @@ public class CMakeCommandLine {
         return this.output;
     }
 
+    // TODO: test input/output streams
     public ProcessInputStream input() {
         return this.input;
     }
