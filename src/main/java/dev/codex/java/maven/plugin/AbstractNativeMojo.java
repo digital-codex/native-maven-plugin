@@ -45,6 +45,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             throw new MojoExecutionException(e);
         }
 
+        // TODO: sometimes build continues without accurate returnValue
         if (returnValue < 0) {
             throw new MojoFailureException("Process exited with status " + returnValue);
         }
